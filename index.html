@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pixsound turns uploaded images into music prompts and background music."
+    />
+    <title>Pixsound</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anonymous+Pro&family=JetBrains+Mono&family=Odor+Mean+Chey&family=Space+Grotesk:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell" data-node-id="1:3">
+      <section class="stage" aria-label="Pixsound image to BGM app">
+        <div class="left-panel">
+          <header class="brand">
+            <h1>Pixsound</h1>
+            <p>Pictures breathe into music</p>
+          </header>
+
+          <div class="action-row">
+            <label class="upload-button" for="image-input" id="drop-zone">
+              <img src="./assets/upload.svg" alt="" />
+              <span>上传图片或拖拽到此处</span>
+            </label>
+            <input id="image-input" type="file" accept="image/*" />
+            <button class="generate-button" id="generate-button" type="button">
+              生成音乐
+            </button>
+          </div>
+
+          <section class="album-showcase" aria-label="Generated album preview">
+            <div class="cover-carousel">
+              <img
+                class="side-cover side-cover-small"
+                src="./assets/cover-left-small.png"
+                alt=""
+              />
+              <img
+                class="side-cover side-cover-medium"
+                src="./assets/cover-left-medium.png"
+                alt=""
+              />
+              <div class="record-pair">
+                <div class="mini-record" aria-hidden="true"></div>
+                <div class="main-cover-wrap">
+                  <img
+                    class="main-cover"
+                    id="main-cover"
+                    src="./assets/cover-ok-computer.png"
+                    alt="Generated artwork"
+                  />
+                  <span class="cover-sheen" aria-hidden="true"></span>
+                </div>
+              </div>
+              <img
+                class="side-cover side-cover-medium"
+                src="./assets/cover-right-medium.png"
+                alt=""
+              />
+              <img
+                class="side-cover side-cover-small"
+                src="./assets/cover-right-small.png"
+                alt=""
+              />
+            </div>
+            <div class="pager" aria-hidden="true">
+              <span></span><i></i><i></i><i></i><i></i>
+            </div>
+            <h2 id="track-title">OK Computer</h2>
+            <div class="tags">
+              <span id="tag-primary">Alternative Rock</span>
+              <span id="tag-secondary">Art Rock</span>
+            </div>
+            <p class="caption" id="caption">
+              The sound of a generation staring into the digital abyss.
+            </p>
+          </section>
+
+          <section class="player" aria-label="Music player">
+            <button class="play-button" type="button" id="play-button" aria-label="Play">
+              <img src="./assets/play.svg" alt="" />
+            </button>
+            <div class="progress">
+              <span id="progress-bar"></span>
+            </div>
+            <div class="time-row">
+              <span id="elapsed-time">64s</span>
+              <span>3:30</span>
+            </div>
+          </section>
+        </div>
+
+        <aside class="turntable" aria-label="Record player preview">
+          <div class="plinth"></div>
+          <div class="large-record" aria-hidden="true">
+            <div class="groove g1"></div>
+            <div class="groove g2"></div>
+            <div class="groove g3"></div>
+            <div class="groove g4"></div>
+            <div class="groove g5"></div>
+            <div class="groove g6"></div>
+            <div class="groove g7"></div>
+            <div class="groove g8"></div>
+            <div class="record-label">
+              <img id="record-cover" src="./assets/cover-ok-computer.png" alt="" />
+            </div>
+            <span class="label-ring"></span>
+            <span class="spindle"></span>
+          </div>
+          <img class="tonearm" src="./assets/tonearm.svg" alt="" />
+          <img class="small-knob knob-left" src="./assets/knob.svg" alt="" />
+          <img class="small-knob knob-center" src="./assets/knob.svg" alt="" />
+          <img class="big-knob" src="./assets/big-knob.svg" alt="" />
+          <p class="side-brand">Pixsound</p>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

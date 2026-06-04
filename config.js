@@ -1,0 +1,1 @@
+window.PIXSOUND_API_ENDPOINT = "";

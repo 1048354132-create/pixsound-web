@@ -32,10 +32,12 @@ DASHSCOPE_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
 
 The UI can be previewed by opening `index.html`.
 
-For the real Qwen + MiniMax workflow, deploy `api/generate.js` to a serverless host such as Vercel, then point the GitHub Pages front end to it:
+For the real Qwen + MiniMax workflow, deploy the Cloudflare Worker in `worker/`, then point the GitHub Pages front end to it.
+
+After the Worker is deployed, edit `config.js`:
 
 ```js
-localStorage.setItem("pixsoundProxyEndpoint", "https://your-backend.vercel.app/api/generate");
+window.PIXSOUND_API_ENDPOINT = "https://your-worker.your-subdomain.workers.dev/generate";
 ```
 
 ## Deploy Front End To GitHub Pages
@@ -48,4 +50,6 @@ localStorage.setItem("pixsoundProxyEndpoint", "https://your-backend.vercel.app/a
 
 ## Recommended Production Shape
 
-Use GitHub Pages for the static page and Vercel/Netlify/Cloudflare Workers for the API proxy. A single Vercel deployment can also host both the static page and `/api/generate`.
+Use GitHub Pages for the static page and Cloudflare Workers for the API proxy.
+
+See `worker/README.md` for the Worker deployment commands.

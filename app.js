@@ -54,7 +54,10 @@ async function generateMusic() {
     selectedImageDataUrl = await readFileAsDataUrl(selectedImage);
   }
 
-  const endpoint = localStorage.getItem("pixsoundProxyEndpoint") || "/api/generate";
+  const endpoint =
+    window.PIXSOUND_API_ENDPOINT ||
+    localStorage.getItem("pixsoundProxyEndpoint") ||
+    "/api/generate";
 
   appShell.classList.add("is-generating");
   generateButton.disabled = true;

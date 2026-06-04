@@ -79,13 +79,17 @@ async function generateMusic() {
       throw new Error(result.error || `Request failed: ${response.status}`);
     }
 
-    if (result.audioUrl) {
-      generatedAudio.src = result.audioUrl;
+    const audioSource = result.audioSource || result.audioUrl;
+
+    if (audioSource) {
+      generatedAudio.src = audioSource;
       generatedAudio.preload = "auto";
       caption.textContent = result.visualPrompt || "音乐已生成，点击唱针或播放键试听。";
       togglePlayback(true);
     } else {
-      caption.textContent = result.musicPrompt || result.message || "音乐请求已完成，但响应里没有找到音频地址。";
+      caption.textContent =
+        result.message ||
+        "音乐请求已完成，但 MiniMax 响应里没有找到可播放的音频数据。";
     }
 
     tagPrimary.textContent = result.model?.vision || "Qwen";

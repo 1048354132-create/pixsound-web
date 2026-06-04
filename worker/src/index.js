@@ -49,6 +49,7 @@ export default {
         env.MINIMAX_API_KEY,
         minimaxModel,
       );
+      const audioSource = extractPlayableAudioSource(musicResult);
 
       return json(
         {
@@ -58,8 +59,11 @@ export default {
             vision: qwenModel,
             music: minimaxModel,
           },
-          music: musicResult,
-          audioUrl: extractAudioUrl(musicResult),
+          audioSource,
+          audioUrl: audioSource,
+          traceId: musicResult?.trace_id || null,
+          musicStatus: musicResult?.data?.status ?? null,
+          extraInfo: musicResult?.extra_info || null,
           message: "Music generation request completed.",
         },
         200,
@@ -176,8 +180,8 @@ async function generateInstrumentalMusic(prompt, apiKey, model) {
   return result.json();
 }
 
-function extractAudioUrl(result) {
-  return (
+function extractPlayableAudioSource(result) {
+  const audio =
     result?.data?.audio_url ||
     result?.data?.music_url ||
     result?.data?.url ||
@@ -185,6 +189,36 @@ function extractAudioUrl(result) {
     result?.audio_url ||
     result?.music_url ||
     result?.url ||
-    null
-  );
+    null;
+
+  if (!audio || typeof audio !== "string") {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(audio) || /^data:audio\//i.test(audio)) {
+    return audio;
+  }
+
+  if (isLikelyHexAudio(audio)) {
+    return `data:audio/mpeg;base64,${hexToBase64(audio)}`;
+  }
+
+  return null;
+}
+
+function isLikelyHexAudio(value) {
+  return value.length > 100 && value.length % 2 === 0 && /^[0-9a-f]+$/i.test(value);
+}
+
+function hexToBase64(hex) {
+  let binary = "";
+  const chunkSize = 8192;
+
+  for (let index = 0; index < hex.length; index += chunkSize * 2) {
+    const chunk = hex.slice(index, index + chunkSize * 2);
+    const bytes = chunk.match(/.{1,2}/g) || [];
+    binary += String.fromCharCode(...bytes.map((byte) => Number.parseInt(byte, 16)));
+  }
+
+  return btoa(binary);
 }

@@ -2,6 +2,7 @@ const imageInput = document.querySelector("#image-input");
 const dropZone = document.querySelector("#drop-zone");
 const generateButton = document.querySelector("#generate-button");
 const playButton = document.querySelector("#play-button");
+const tonearmButton = document.querySelector("#tonearm-button");
 const mainCover = document.querySelector("#main-cover");
 const recordCover = document.querySelector("#record-cover");
 const trackTitle = document.querySelector("#track-title");
@@ -13,29 +14,34 @@ const elapsedTime = document.querySelector("#elapsed-time");
 const appShell = document.querySelector(".app-shell");
 
 let selectedImage = null;
+let selectedImageDataUrl = "";
 let isPlaying = false;
+let generatedAudio = new Audio();
 
 function setUploadedImage(file) {
   if (!file || !file.type.startsWith("image/")) return;
 
   selectedImage = file;
-  const url = URL.createObjectURL(file);
-  mainCover.src = url;
-  recordCover.src = url;
+  const previewUrl = URL.createObjectURL(file);
+  mainCover.src = previewUrl;
+  recordCover.src = previewUrl;
   trackTitle.textContent = file.name.replace(/\.[^.]+$/, "").slice(0, 28) || "Untitled Image";
-  tagPrimary.textContent = "Image Prompt";
-  tagSecondary.textContent = "BGM";
-  caption.textContent = "Ready to translate this picture into a music prompt.";
+  tagPrimary.textContent = "Qwen Vision";
+  tagSecondary.textContent = "Instrumental";
+  caption.textContent = "图片已载入，点击生成音乐开始创作。";
+
+  readFileAsDataUrl(file).then((dataUrl) => {
+    selectedImageDataUrl = dataUrl;
+  });
 }
 
-function createPromptFromFile(file) {
-  const baseName = file?.name?.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ") || "uploaded image";
-  return [
-    `Create cinematic background music inspired by the image "${baseName}".`,
-    "Mood: atmospheric, visual, immersive.",
-    "Use layered textures, a memorable motif, and a clean 3 minute structure.",
-    "Avoid vocals unless the image strongly suggests a human performance.",
-  ].join(" ");
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
 
 async function generateMusic() {
@@ -44,42 +50,67 @@ async function generateMusic() {
     return;
   }
 
-  const prompt = createPromptFromFile(selectedImage);
-  const proxyEndpoint = localStorage.getItem("pixsoundProxyEndpoint");
+  if (!selectedImageDataUrl) {
+    selectedImageDataUrl = await readFileAsDataUrl(selectedImage);
+  }
+
+  const endpoint = localStorage.getItem("pixsoundProxyEndpoint") || "/api/generate";
 
   appShell.classList.add("is-generating");
   generateButton.disabled = true;
   generateButton.textContent = "生成中";
-  caption.textContent = prompt;
+  caption.textContent = "正在用千问理解图片，并调用 MiniMax 生成纯音乐。";
   progressBar.style.width = "52%";
   elapsedTime.textContent = "108s";
 
-  if (!proxyEndpoint) {
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    caption.textContent = "已生成提示词。部署到 GitHub Pages 后，请接入代理后端来安全调用 MiniMax。";
-    generateButton.textContent = "生成音乐";
-    generateButton.disabled = false;
-    appShell.classList.remove("is-generating");
-    return;
-  }
-
   try {
-    const response = await fetch(proxyEndpoint, {
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ image: selectedImageDataUrl }),
     });
 
-    if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+    const result = await response.json().catch(() => ({}));
 
-    const result = await response.json();
-    caption.textContent = result.message || "Music generated successfully.";
+    if (!response.ok) {
+      throw new Error(result.error || `Request failed: ${response.status}`);
+    }
+
+    if (result.audioUrl) {
+      generatedAudio.src = result.audioUrl;
+      generatedAudio.preload = "auto";
+      caption.textContent = result.visualPrompt || "音乐已生成，点击唱针或播放键试听。";
+      togglePlayback(true);
+    } else {
+      caption.textContent = result.musicPrompt || result.message || "音乐请求已完成，但响应里没有找到音频地址。";
+    }
+
+    tagPrimary.textContent = result.model?.vision || "Qwen";
+    tagSecondary.textContent = result.model?.music || "MiniMax";
   } catch (error) {
-    caption.textContent = "音乐生成请求失败，请检查代理后端地址和密钥配置。";
+    caption.textContent = `生成失败：${error.message}`;
   } finally {
     generateButton.textContent = "生成音乐";
     generateButton.disabled = false;
     appShell.classList.remove("is-generating");
+  }
+}
+
+function togglePlayback(forceState) {
+  isPlaying = typeof forceState === "boolean" ? forceState : !isPlaying;
+  appShell.classList.toggle("is-playing", isPlaying);
+  playButton.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
+  tonearmButton.setAttribute("aria-pressed", String(isPlaying));
+
+  if (!generatedAudio.src) return;
+
+  if (isPlaying) {
+    generatedAudio.play().catch(() => {
+      caption.textContent = "浏览器阻止了自动播放，请再点击一次播放。";
+      togglePlayback(false);
+    });
+  } else {
+    generatedAudio.pause();
   }
 }
 
@@ -103,8 +134,7 @@ dropZone.addEventListener("drop", (event) => {
 });
 
 generateButton.addEventListener("click", generateMusic);
+playButton.addEventListener("click", () => togglePlayback());
+tonearmButton.addEventListener("click", () => togglePlayback());
 
-playButton.addEventListener("click", () => {
-  isPlaying = !isPlaying;
-  appShell.classList.toggle("is-generating", isPlaying);
-});
+generatedAudio.addEventListener("ended", () => togglePlayback(false));

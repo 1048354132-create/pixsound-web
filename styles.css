@@ -429,12 +429,34 @@ button {
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9);
 }
 
-.tonearm {
+.tonearm-button {
   position: absolute;
   left: 68.17px;
   top: 468px;
   width: 365.25px;
   height: 42px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform-origin: 330px 21px;
+  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 180ms ease;
+}
+
+.tonearm-button:hover {
+  filter: brightness(1.12);
+}
+
+.tonearm-button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 6px;
+  border-radius: 999px;
+}
+
+.tonearm {
+  display: block;
+  width: 365.25px;
+  height: 42px;
+  pointer-events: none;
 }
 
 .small-knob,
@@ -478,13 +500,19 @@ button {
 }
 
 .is-generating .large-record,
-.is-generating .mini-record {
+.is-generating .mini-record,
+.is-playing .large-record,
+.is-playing .mini-record {
   animation: spin 6s linear infinite;
 }
 
 .is-generating .main-cover-wrap,
 .is-generating .record-label {
   animation: pulse-cover 1.8s ease-in-out infinite;
+}
+
+.is-playing .tonearm-button {
+  transform: translate(115px, -84px) rotate(-21deg);
 }
 
 @keyframes spin {
